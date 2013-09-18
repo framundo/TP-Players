@@ -61,7 +61,8 @@ public class PlayerApp
 				}
 			}
 			
-			execService.awaitTermination(20, TimeUnit.SECONDS);
+			 execService.shutdown();
+			 while(!execService.isTerminated()){}
 				
 			System.out.println("salio!");
 			System.exit(0);
