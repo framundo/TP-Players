@@ -28,14 +28,14 @@ public class RefereeServer implements Referee
 	public static final String ENDPOINT = "endpoint:";
 
 	final List<Player> playerServers = new ArrayList<Player>();
-	final Map<Player, Registration> registrations = new HashMap();
-	final Map<Player, Registration> initialRegistrations = new HashMap();
+	final Map<Player, Registration> registrations = new HashMap<Player, Registration>();
+	final Map<Player, Registration> initialRegistrations = new HashMap<Player, Registration>();
 	final List<Registration> winners = new ArrayList<Registration>();
 	final Random random = new Random();
-	final Map<Integer, List<Request>> requests = new HashMap();
+	final Map<Integer, List<Request>> requests = new HashMap<Integer, List<Request>>();
 	boolean playing;
 	final int clientTotal;
-	final Map<String, List<Player>> players = new HashMap();
+	final Map<String, List<Player>> players = new HashMap<String, List<Player>>();
 
 	public RefereeServer(int clientTotal)
 	{
@@ -153,7 +153,7 @@ public class RefereeServer implements Referee
 			playerServers.add(playerClient);
 			registrations.put(playerClient, result);
 			initialRegistrations.put(playerClient, result);
-			requests.put(result.id, new ArrayList());
+			requests.put(result.id, new ArrayList<Request>());
 		}
 
 		synchronized (this) {

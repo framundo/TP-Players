@@ -70,7 +70,7 @@ public class PlayerServer implements Player
 		return response;
 	}
 
-	public void play(String message, Player target) throws RemoteException, InterruptedException
+	public synchronized void play(String message, Player target) throws RemoteException, InterruptedException
 	{
 		int myOpSeq = this.clientSeq++;
 		Request request = new Request(this.id, myOpSeq, message, hashMessage(myOpSeq, message));

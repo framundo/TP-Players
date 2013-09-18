@@ -1,13 +1,12 @@
 package ar.edu.itba.pod.tp.player;
 
-import ar.edu.itba.pod.tp.interfaces.Player;
-import ar.edu.itba.pod.tp.interfaces.PlayerDownException;
-import ar.edu.itba.pod.tp.interfaces.Referee;
-import java.rmi.ConnectException;
-import java.rmi.UnmarshalException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -16,6 +15,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import ar.edu.itba.pod.tp.interfaces.Player;
+import ar.edu.itba.pod.tp.interfaces.Referee;
 
 /**
  * Hello world!
@@ -47,22 +49,19 @@ public class PlayerApp
 			server.init(referee);
 			
 			List<Player> players = server.getOpponents();
-			int plays = 0;
 			int loop = server.total;
 			System.out.println("EMPEZAMOS!! el total de requests es: " + loop);
-			do {
-				int opt = (int) (java.lang.Math.random() * players.size());
-				try {
-					Player other = players.get(opt);
-					if (other != null) {
-						server.play("hola! estamos jugando " + plays, other);
-					}
-				}
-				catch (PlayerDownException e) {
-					players.remove(opt);
-				}
-			} while (++plays < loop);
 			
+			ExecutorService execService = Executors.newFixedThreadPool(MAX_THREADS);
+			
+			for(int thread = 0; thread < MAX_THREADS; thread++) {
+				synchronized (players) {
+					int t_loops = loop / MAX_THREADS;
+					execService.execute(new PlayerJob(server, players, t_loops));
+				}
+			}
+			
+			execService.awaitTermination(20, TimeUnit.SECONDS);
 				
 			System.out.println("salio!");
 			System.exit(0);
@@ -100,6 +99,8 @@ public class PlayerApp
 		return result;
 	}
 
+	private static final int MAX_THREADS = 3;
+	
 	private static final String PORT_L = "port";
 	private static final String PORT_S = "p";
 	private static final String PORT_D = "7242";
