@@ -3,6 +3,7 @@ package ar.edu.itba.pod.tp.interfaces;
 import java.io.Serializable;
 import java.util.List;
 
+@SuppressWarnings("serial")
 public class Registration implements Serializable
 {
 	public List<Player> players;

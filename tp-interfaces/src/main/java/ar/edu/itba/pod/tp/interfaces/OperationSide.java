@@ -4,10 +4,6 @@
  */
 package ar.edu.itba.pod.tp.interfaces;
 
-/**
- *
- * @author mariano
- */
 public enum OperationSide
 {
 	CLIENT,

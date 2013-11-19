@@ -6,10 +6,7 @@ package ar.edu.itba.pod.tp.interfaces;
 
 import java.io.Serializable;
 
-/**
- *
- * @author mariano
- */
+@SuppressWarnings("serial")
 public class Response implements Serializable
 {
 	public int reqPlayerId;
@@ -20,7 +17,7 @@ public class Response implements Serializable
 	public int rspPlayerId;
 	public int rspServerSeq;
 	public String rspMessage;
-	public String rspHash;	
+	public String rspHash;
 
 	@Override
 	public String toString()

@@ -1,11 +1,13 @@
 package ar.edu.itba.pod.tp.referee;
 
-import ar.edu.itba.pod.tp.interfaces.Master;
-import ar.edu.itba.pod.tp.interfaces.Referee;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Scanner;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -15,20 +17,19 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-/**
- * Hello world!
- *
- */
-public class RefereeApp 
-{
-	
-    public static void main( String[] args ) throws ParseException
-    {
+import ar.edu.itba.pod.tp.interfaces.Master;
+import ar.edu.itba.pod.tp.interfaces.Referee;
+
+
+public class RefereeApp {
+
+	public static void main( String[] args ) throws ParseException
+	{
 		final CommandLine cmdLine = parseArguments(args);
 		final String host = cmdLine.getOptionValue(HOST_L, HOST_D);
 		final int port = Integer.valueOf( cmdLine.getOptionValue(PORT_L, PORT_D));
 		final String name = cmdLine.getOptionValue(NAME_L);
-		
+
 		if (cmdLine.hasOption("help")) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("server", options);
@@ -41,28 +42,16 @@ public class RefereeApp
 			System.out.println("Loading Master");
 			final Master master = (Master) registry.lookup("master");
 			final int requestsTotal = master.getRequestsTotal();
-			
-			final RefereeServer server = new RefereeServer(name, requestsTotal, registry);
+
+			final RefereeServer server = new RefereeServer(name, requestsTotal, registry, host, String.valueOf(port));
 			System.out.println("Binding my referee");
 			final Referee stub = (Referee) UnicastRemoteObject.exportObject(server, 0);
 			master.proxyRebind("referees/" + name, stub);
 
 			master.registerReferee(stub);
 
-			System.out.println("Press any key to start");
-			Scanner scan = new Scanner(System.in);
-			
-			synchronized (server) {
-				scan.nextLine();
-				server.playing = true;
-			}
-			System.out.println("EMPEZAMOS!");
-			String line;
-			do {
-				line = scan.next();
-				System.out.println(server.showResults());
-				
-			} while(!"x".equals(line));
+			server.playing = true;
+			Thread.sleep(master.getTotalTime() * 1000);
 			System.exit(0);
 		}
 		catch (Exception e) {
@@ -82,9 +71,9 @@ public class RefereeApp
 			// oops, something went wrong
 			System.err.println("Parsing failed.  Reason: " + exp.getMessage());
 			throw exp;
-		}	
+		}        
 	}
-	
+
 	private static Options createOptions()
 	{
 		final Options result = new Options();
@@ -105,4 +94,5 @@ public class RefereeApp
 	private static final String NAME_L = "name";
 	private static final String NAME_S = "n";
 	private static Options options = createOptions();
+
 }

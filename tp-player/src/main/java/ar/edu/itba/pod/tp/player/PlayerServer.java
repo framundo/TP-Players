@@ -1,8 +1,11 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package ar.edu.itba.pod.tp.player;
+
+import java.rmi.ConnectException;
+import java.rmi.RemoteException;
+import java.rmi.ServerException;
+import java.rmi.UnmarshalException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
 import ar.edu.itba.pod.tp.interfaces.Player;
 import ar.edu.itba.pod.tp.interfaces.PlayerDownException;
@@ -11,11 +14,6 @@ import ar.edu.itba.pod.tp.interfaces.Registration;
 import ar.edu.itba.pod.tp.interfaces.Request;
 import ar.edu.itba.pod.tp.interfaces.Response;
 import ar.edu.itba.pod.tp.interfaces.Utils;
-import java.rmi.ConnectException;
-import java.rmi.RemoteException;
-import java.rmi.UnmarshalException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.List;
 
 /**
  *
@@ -75,11 +73,11 @@ public class PlayerServer implements Player
 		int myOpSeq = this.clientSeq++;
 		Request request = new Request(this.id, myOpSeq, message, hashMessage(myOpSeq, message));
 
-		System.out.println("invoke " + request);
+//		System.out.println("invoke " + request);
 		this.referee.registerRequest(this, request);
 		try {
 			Response response = target.operate(request);
-			System.out.println("result " + response);
+//			System.out.println("result " + response);
 		}
 		catch (ConnectException e) {
 			e.printStackTrace();
@@ -88,6 +86,9 @@ public class PlayerServer implements Player
 		catch (UnmarshalException e) {
 			e.printStackTrace();
 			throw new PlayerDownException(e.getMessage(), e);
+		}
+		catch (ServerException e) {
+			throw new PlayerDownException(e.getMessage(), e);			
 		}
 		catch (Exception e) {
 			e.printStackTrace();

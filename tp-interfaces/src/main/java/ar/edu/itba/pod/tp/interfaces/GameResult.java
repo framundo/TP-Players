@@ -21,8 +21,13 @@ public class GameResult implements Serializable
 	{
 		PlayerResult playerResult = new PlayerResult(player, status, serverCount, playerCount);
 		results.add(playerResult);
-		
 	}
+	
+	public void addPlayerResult(PlayerResult pr)
+	{
+		results.add(pr);
+	}
+
 	public static class PlayerResult implements Serializable, Comparable<PlayerResult>
 	{
 		public String player;
@@ -45,20 +50,19 @@ public class GameResult implements Serializable
 			return "PlayerResult{" + "player=" + player + ", position=" + position + ", status=" + status + '}';
 		}
 
-		@Override
 		public int compareTo(PlayerResult pr)
 		{
 			return -serverCount - playerCount + pr.serverCount + pr.playerCount;
 		}
 	}
-	
+	 
 	public enum Status 
 	{
 		SUCCESS,
 		SLOW,
 		ERROR
 	}
-
+	
 	@Override
 	public String toString()
 	{
@@ -70,6 +74,4 @@ public class GameResult implements Serializable
 		s += "\n}";
 		return s;
 	}
-	
-	
 }

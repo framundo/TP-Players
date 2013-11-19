@@ -1,14 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template position the editor.
- */
 package ar.edu.itba.pod.tp.master;
 
-import ar.edu.itba.pod.tp.interfaces.GameResult;
-import ar.edu.itba.pod.tp.interfaces.Master;
-import ar.edu.itba.pod.tp.interfaces.Referee;
 import java.rmi.AccessException;
-import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
@@ -28,15 +20,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author mariano
- */
-public class MasterServer implements Master
-{
+import ar.edu.itba.pod.tp.interfaces.GameResult;
+import ar.edu.itba.pod.tp.interfaces.Master;
+import ar.edu.itba.pod.tp.interfaces.Referee;
+
+
+public class MasterServer implements Master {
 	private final Registry registry;
 	private final Map<String, Referee> referees = Collections.synchronizedMap(new HashMap());
 	private final int requestsTotal;
@@ -53,7 +46,7 @@ public class MasterServer implements Master
 		this.gameTimeout = gameTimeout;
 		this.totalTime = totalTime;
 	}
-	
+
 	@Override
 	public int getRequestsTotal()
 	{
@@ -80,6 +73,9 @@ public class MasterServer implements Master
 				throw new IllegalArgumentException("Referee already exists!");
 			}
 			final Remote refereeRemote = lookup("referees/" + referee.getName());
+			if(refereeRemote == null) {
+				throw new IllegalArgumentException("Referee is null!");
+			}
 			if (!(refereeRemote instanceof Referee)) {
 				throw new IllegalArgumentException("Remote object " + referee.getName() + " bind is not a Referee");
 			}
@@ -88,6 +84,9 @@ public class MasterServer implements Master
 			}
 			referees.put(referee.getName(), referee);
 			System.out.println("Referee registered: " + referee.getName());
+			synchronized (this) {
+				return;
+			}
 		}
 		catch (Exception ex) {
 			throw new RemoteException("Referee Registration failed", ex);
@@ -106,7 +105,7 @@ public class MasterServer implements Master
 	{
 		return this.objects.get(name);
 	}
-	
+
 	void printResults()
 	{
 		System.out.println("Total Games: " + results.size());
@@ -128,12 +127,12 @@ public class MasterServer implements Master
 			System.out.println(String.format("Player: %s Score:%s", entry.getKey(), entry.getValue()));
 		}
 	}
-	
+
 	void shutdown()
 	{
 		this.gameRunning = false;
 	}
-	
+
 	Map<String, Referee> getReferees()
 	{
 		return referees;
@@ -143,7 +142,7 @@ public class MasterServer implements Master
 	{
 		return new GamesRunner();
 	}
-	
+
 	class GamesRunner implements Runnable
 	{
 		final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -159,7 +158,7 @@ public class MasterServer implements Master
 						myReferees = new ArrayList<Referee>(referees.values());
 						gameIn = currentGameIn++;
 					}
-					
+
 					hostGame(gameIn, gameHash, myReferees);
 				}
 				catch (Exception ex) {
@@ -168,7 +167,7 @@ public class MasterServer implements Master
 			} while (gameRunning);
 			System.out.println("Runner finished");
 		}
-		
+
 		private void hostGame(final int gameIn, final String gameHash, final List<Referee> myReferees) throws Exception
 		{
 			final int opt = (int) (java.lang.Math.random() * myReferees.size());
@@ -185,8 +184,14 @@ public class MasterServer implements Master
 				}
 			});
 
-			final GameResult result = submit.get(gameTimeout, TimeUnit.SECONDS);
-			System.out.println("Game finished: " + gameHash + " Result: " + result != null ? result.toString() : "Timeout");
+			GameResult result = null;
+			try {
+				result = submit.get(gameTimeout, TimeUnit.SECONDS);
+			} catch(TimeoutException e) {
+				// Do nothing		
+			}
+			System.out.println(result == null);
+			System.out.println("Game finished: " + gameHash + " Result: " + (result != null ? result.toString() : "Timeout"));
 			if (result != null) {
 				results.put(gameHash, result);
 			}

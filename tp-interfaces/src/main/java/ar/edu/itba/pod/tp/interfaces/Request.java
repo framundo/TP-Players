@@ -6,10 +6,7 @@ package ar.edu.itba.pod.tp.interfaces;
 
 import java.io.Serializable;
 
-/**
- *
- * @author mariano
- */
+@SuppressWarnings("serial")
 public class Request implements Serializable
 {
 	public int playerId;
@@ -60,5 +57,5 @@ public class Request implements Serializable
 		}
 		return true;
 	}
-	
+
 }

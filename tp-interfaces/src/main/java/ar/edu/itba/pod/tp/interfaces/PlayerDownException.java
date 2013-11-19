@@ -6,10 +6,7 @@ package ar.edu.itba.pod.tp.interfaces;
 
 import java.rmi.RemoteException;
 
-/**
- *
- * @author mariano
- */
+@SuppressWarnings("serial")
 public class PlayerDownException extends RemoteException
 {
 
@@ -22,5 +19,5 @@ public class PlayerDownException extends RemoteException
 	{
 		super(s, cause);
 	}
-	
+
 }
